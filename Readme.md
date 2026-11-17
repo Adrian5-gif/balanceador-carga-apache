@@ -183,11 +183,30 @@ Script: `setup_letsencrypt_https.sh`
 
 Para el HTTPS hace falta un dominio. Saqué uno gratis en **DuckDNS**: `adrianrios.duckdns.org`. Lo puse apuntando a `127.0.0.1`, que es mi propio PC, y desde ahí llega al balanceador.
 
-**El problema:** Let's Encrypt normalmente comprueba que el dominio es tuyo entrando a tu servidor por Internet. Mis máquinas no están en Internet, así que eso no funcionaba.
+### El problema
 
-**La solución:** comprobarlo por **DNS**. Certbot escribe un dato en DuckDNS y Let's Encrypt lo mira ahí. Para eso usé el plugin `certbot-dns-duckdns` y el token de DuckDNS.
+Antes de dar un certificado, Let's Encrypt tiene que comprobar que el dominio es tuyo. Lo normal es la **validación por HTTP**:
 
-Lo que hace el script:
+1. Certbot pone un fichero en el servidor web.
+2. Let's Encrypt entra al dominio **por Internet** y busca ese fichero.
+3. Si lo encuentra, sabe que el dominio es tuyo.
+
+Pero mis máquinas están en mi portátil, no en Internet. Mi dominio apunta a `127.0.0.1`, así que Let's Encrypt no podía entrar a buscar el fichero.
+
+### La solución: validación por DNS
+
+En vez de entrar al servidor, Let's Encrypt mira el **DNS** del dominio, que está en DuckDNS y sí está en Internet:
+
+1. Certbot usa el **token de DuckDNS** para escribir un código en el DNS de mi dominio (un registro **TXT**).
+2. Espera 60 segundos a que DuckDNS lo publique.
+3. Let's Encrypt consulta el DNS y encuentra ese código.
+4. Como solo el dueño del dominio puede cambiar su DNS, sabe que el dominio es mío y me da el certificado.
+
+Para hacer esto con DuckDNS usé el plugin **`certbot-dns-duckdns`**.
+
+Es como demostrar que una casa es tuya: lo normal es que vengan y abras la puerta, pero si no pueden venir, lo demuestras cambiando algo en el registro oficial, cosa que solo puede hacer el dueño.
+
+### Lo que hace el script
 
 1. Instala Certbot con el plugin de Apache y el de DuckDNS.
 2. Pide el certificado:
@@ -329,6 +348,6 @@ En el vídeo se ve que:
 
 Con un solo `vagrant up` se monta todo: las 4 máquinas, la aplicación y el HTTPS.
 
-Lo que más me ha costado ha sido el certificado, porque mis máquinas no están en Internet y tuve que buscar otra forma de validar el dominio.
+Lo que más me ha costado ha sido el certificado, porque mis máquinas no están en Internet y no podía validar el dominio de la forma normal (por HTTP). Lo solucioné validándolo por DNS con el plugin de DuckDNS, como explico en el apartado 8.
 
 Al final, el balanceador reparte bien las visitas, la web va por HTTPS y la base de datos solo se puede usar desde los servidores web.
