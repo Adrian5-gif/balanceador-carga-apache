@@ -9,19 +9,18 @@ Web: https://adrianrios.duckdns.org
 
 1. [Introducción](#1-introducción)
 2. [Cómo es la infraestructura](#2-cómo-es-la-infraestructura)
-3. [AWS y máquinas virtuales](#3-aws-y-máquinas-virtuales)
-4. [Ficheros del repositorio](#4-ficheros-del-repositorio)
-5. [Vagrantfile](#5-vagrantfile)
-6. [Base de datos](#6-base-de-datos)
-7. [Servidores web](#7-servidores-web)
-8. [Balanceador](#8-balanceador)
-9. [Certificado HTTPS](#9-certificado-https)
-10. [Cortafuegos](#10-cortafuegos)
-11. [Cómo ponerlo en marcha](#11-cómo-ponerlo-en-marcha)
-12. [Comprobaciones](#12-comprobaciones)
-13. [Vídeo](#13-vídeo)
-14. [Problemas que he tenido](#14-problemas-que-he-tenido)
-15. [Conclusión](#15-conclusión)
+3. [Ficheros del repositorio](#3-ficheros-del-repositorio)
+4. [Vagrantfile](#4-vagrantfile)
+5. [Base de datos](#5-base-de-datos)
+6. [Servidores web](#6-servidores-web)
+7. [Balanceador](#7-balanceador)
+8. [Certificado HTTPS](#8-certificado-https)
+9. [Cortafuegos](#9-cortafuegos)
+10. [Cómo ponerlo en marcha](#10-cómo-ponerlo-en-marcha)
+11. [Comprobaciones](#11-comprobaciones)
+12. [Vídeo](#12-vídeo)
+13. [Problemas que he tenido](#13-problemas-que-he-tenido)
+14. [Conclusión](#14-conclusión)
 
 ## 1. Introducción
 
@@ -59,18 +58,7 @@ Hay **dos redes privadas**:
 
 Los servidores web están en las dos. Así, el balanceador nunca puede llegar a la base de datos.
 
-## 3. AWS y máquinas virtuales
-
-El enunciado deja hacerlo en AWS o con máquinas virtuales. Yo lo he hecho con **máquinas virtuales**, así que las cosas de AWS las he hecho así:
-
-| En AWS | Lo que he hecho |
-|---|---|
-| Instancias EC2 | Máquinas virtuales con Vagrant |
-| Subred pública y privadas | Dos redes internas de VirtualBox |
-| IP elástica | Los puertos 80 y 443 de mi PC van al balanceador |
-| Grupos de seguridad y ACL | Cortafuegos `ufw` en cada máquina |
-
-## 4. Ficheros del repositorio
+## 3. Ficheros del repositorio
 
 ```
 Vagrantfile            -> crea las 4 máquinas
@@ -92,7 +80,7 @@ En el fichero `.env` están todas las IPs y contraseñas juntas. Todos los scrip
 
 El token de DuckDNS (que es como una contraseña) está en `scripts/duckdns_token.txt`. Ese fichero **no lo he subido** a GitHub: está en el `.gitignore`.
 
-## 5. Vagrantfile
+## 4. Vagrantfile
 
 El Vagrantfile crea las 4 máquinas en este orden: base de datos, servidores web y balanceador. Así, cuando se crea cada una, la que necesita ya está lista.
 
@@ -104,7 +92,7 @@ Lo más importante:
 - **Solo el balanceador** tiene los puertos 80 y 443 abiertos hacia mi PC.
 - A cada máquina le dice qué script tiene que ejecutar.
 
-## 6. Base de datos
+## 5. Base de datos
 
 Script: `install_lamp_backend.sh`
 
@@ -117,7 +105,7 @@ Script: `install_lamp_backend.sh`
 4. Crea el usuario `lamp_user`, que **solo puede entrar desde la red de los servidores web** (`192.168.20.%`).
 5. Activa el cortafuegos.
 
-## 7. Servidores web
+## 6. Servidores web
 
 Se hace igual en Web1 y en Web2.
 
@@ -144,7 +132,7 @@ Se hace igual en Web1 y en Web2.
 
 4. Añade a la página una línea que dice **qué servidor la ha mostrado** (Web1 o Web2). Así se ve que el balanceo funciona.
 
-## 8. Balanceador
+## 7. Balanceador
 
 Script: `install_load_balancer.sh`
 
@@ -189,7 +177,7 @@ La configuración del balanceador (`load-balancer.conf`):
 - **ProxyPassReverse**: hace que el navegador vea siempre la dirección del balanceador.
 - **favicon**: el navegador pide el icono de la pestaña en cada visita. Si se mandara a los servidores, contaría como otra visita y el reparto no se vería bien.
 
-## 9. Certificado HTTPS
+## 8. Certificado HTTPS
 
 Script: `setup_letsencrypt_https.sh`
 
@@ -221,7 +209,7 @@ Lo que hace el script:
    - `--installer apache`: pone el certificado en Apache solo.
    - `--redirect`: si alguien entra por `http://`, lo manda a `https://`.
 
-## 10. Cortafuegos
+## 9. Cortafuegos
 
 En todas las máquinas he puesto el cortafuegos **ufw**. La idea es **bloquear todo** y abrir solo lo necesario:
 
@@ -231,9 +219,9 @@ ufw default allow outgoing   # deja salir
 ufw allow 22/tcp             # SSH, para entrar con vagrant ssh
 ```
 
-Esto es como el **grupo de seguridad** de AWS.
+Esto hace de **grupo de seguridad**: protege cada máquina.
 
-Después, en cada máquina abro solo lo que necesita **y solo desde la red que toca**. Esto es como la **ACL** de cada subred:
+Después, en cada máquina abro solo lo que necesita **y solo desde la red que toca**. Esto hace de **lista de control de acceso (ACL)** de cada subred:
 
 | Máquina | Qué abro | Desde dónde |
 |---|---|---|
@@ -243,7 +231,7 @@ Después, en cada máquina abro solo lo que necesita **y solo desde la red que t
 
 Así nadie puede entrar directamente a los servidores web ni a la base de datos.
 
-## 11. Cómo ponerlo en marcha
+## 10. Cómo ponerlo en marcha
 
 1. Guardar el token de DuckDNS (en PowerShell):
    ```powershell
@@ -264,7 +252,7 @@ vagrant halt               # apagarlas
 vagrant destroy -f         # borrarlas
 ```
 
-## 12. Comprobaciones
+## 11. Comprobaciones
 
 ### Instalación de la base de datos
 
@@ -318,7 +306,7 @@ Al recargar la página, a veces sale Web1 y a veces Web2.
 
 ![Página servida por Web2](img/11-balanceo-web2.png)
 
-## 13. Vídeo
+## 12. Vídeo
 
 En el vídeo se ve que:
 
@@ -329,7 +317,7 @@ En el vídeo se ve que:
 
 [Ver el vídeo](screencast/screencast.mp4)
 
-## 14. Problemas que he tenido
+## 13. Problemas que he tenido
 
 **La base de datos se colgaba.** Primero usé Ubuntu 24.04 con MySQL, pero la máquina se quedaba colgada siempre al instalar MySQL. Cambié a Debian 12 con MariaDB, como en la práctica de la pila LAMP, y funcionó.
 
@@ -337,10 +325,10 @@ En el vídeo se ve que:
 
 **Se cortó la conexión con Let's Encrypt.** La primera vez falló después de esperar el minuto. Lo repetí y funcionó.
 
-## 15. Conclusión
+## 14. Conclusión
 
 Con un solo `vagrant up` se monta todo: las 4 máquinas, la aplicación y el HTTPS.
 
-Lo que más me ha costado ha sido el certificado, porque al no estar en AWS tuve que buscar otra forma de validar el dominio.
+Lo que más me ha costado ha sido el certificado, porque mis máquinas no están en Internet y tuve que buscar otra forma de validar el dominio.
 
 Al final, el balanceador reparte bien las visitas, la web va por HTTPS y la base de datos solo se puede usar desde los servidores web.
