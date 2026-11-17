@@ -43,29 +43,7 @@ Todo funciona con **cuatro máquinas virtuales con Debian 12**. Se crean y se co
 
 ## 2. Cómo es la infraestructura
 
-```
-              Navegador
-     https://adrianrios.duckdns.org
-                  |
-                  v
-       +-----------------------+
-       | AdrianRiosBalanceador |      Capa 1 (pública)
-       |     192.168.10.10     |
-       +-----------------------+
-                  |  red_frontend
-          +-------+-------+
-          |               |
-   +-------------+  +-------------+
-   | Web1        |  | Web2        |  Capa 2 (privada)
-   +-------------+  +-------------+
-          |               |
-          +-------+-------+
-                  |  red_backend
-       +-----------------------+
-       |    AdrianRiosBBDD     |      Capa 3 (privada)
-       |     192.168.20.13     |
-       +-----------------------+
-```
+![Esquema de la infraestructura](img/00-arquitectura.png)
 
 | Máquina | Qué hace | IP |
 |---|---|---|
